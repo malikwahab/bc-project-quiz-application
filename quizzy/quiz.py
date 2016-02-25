@@ -1,3 +1,6 @@
+from question import Question
+
+
 class Quiz(object):
 	"""
 
@@ -12,22 +15,57 @@ class Quiz(object):
 		self.set_number_of_questions()
 
 	def get_question(self, number):
-		return self.quiz_dict["questions"][number]
+		question_obj = Question(self.quiz_dict["questions"][number])
+		return question_obj
+
 	def get_all_questions(self):
-		return self.quiz_dict["questions"]
+		questions = self.quiz_dict["questions"]
+		questions_obj = []
+		for key in questions:
+			question_obj = Question(questions[key])
+			questions_obj.append(question_obj)
+		return questions_obj
+
 	def get_title(self):
 		return self.quiz_dict['title']
+
 	def get_duration(self):
-		return self.quiz_dict['duration']
-	def get_tags(self):
+		if self.in_quiz('duration'):
+			return self.quiz_dict['duration']
+		return False
+
+	def get_category(self):
+		return self.quiz_dict['category']
+
+	def get_tags_list(self):
 		tags = self.quiz_dict['tags']
 		tags = tags.split(",")
 		stripped_tags = []
 		for tag in tags:
 			stripped_tags.append(tag.strip())
 		return stripped_tags
-	def get_id(self):
-		return self.quiz_dict['id']
+
+	def get_tags(self):
+		return self.quiz_dict['tags']
+
+	def in_quiz(self, index):
+		if index in self.quiz_dict:
+			return True
+		else:
+			return False
+
+	def get_key(self):
+		if self.in_quiz('key'):
+			if self.quiz_dict['key'] != '':
+				return self.quiz_dict['key']
+		return False
+
+	def get_difficulty(self):
+		if self.in_quiz('difficulty'):
+			return self.quiz_dict['difficulty']
+		else:
+			return False
+	
 	def set_number_of_questions(self):
 		questions = self.get_all_questions()
 		self.number_of_questions = questions.__len__()
@@ -45,3 +83,5 @@ class Quiz(object):
 				wrong_questions.append(key)
 		percentage = 100*float(score)/float(self.number_of_questions)
 		return {"score": score, "percentage": percentage, "wrong": wrong_questions}
+
+	# def is_pass(self):

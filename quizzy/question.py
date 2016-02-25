@@ -16,6 +16,7 @@ class Question(object):
 
 	def get_answer_index(self):
 		return self.question_dict['answer']
+
 	def get_answer_text(self):
 		answer_index = self.get_answer_index()
 		return self.question_dict['options'][answer_index]
