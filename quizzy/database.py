@@ -90,15 +90,16 @@ class QuizToDb(object):
 		return rows
 
 	def get_quiz_title(self, title):
-		results = self.cursor.execute("SELECT * FROM quiz WHERE title = {}".format(title))
+		results = self.cursor.execute("SELECT * FROM quiz WHERE title = '{}'".format(title))
+		rows = results.fetchall()
 		if len(rows) < 1:
 			return "No Quiz with the specified Title"
-		return rows
+		return self.get_quiz_dict(rows[0])
 	def get_quiz_property(self, quiz_property, data):
-		results = self.cursor.execute("SELECT * FROM quiz WHERE {} = {}".format(quiz_property, title))
+		results = self.cursor.execute("SELECT * FROM quiz WHERE {} = {}".format(quiz_property, data))
 		if len(rows) < 1:
-			return "No Quiz with the specified {}".format(quiz_property)
-		return rows
+			return False
+		return self.get_quiz_dict(rows[0])
 	def get_quiz_dict(self, quiz_db_data):
 		quiz = {}
 		quiz_id = quiz_db_data[0]
