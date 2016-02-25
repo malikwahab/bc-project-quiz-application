@@ -77,6 +77,16 @@ class QuizToDb(object):
 		for question in quiz.get_all_questions():
 			self.save_question(question, quiz_id)
 		self.db.commit()
+	
+	def listquizzes(self):
+		results = self.cursor.execute("SELECT title FROM quiz")
+		rows = results.fetchall()
+		quizzes = []
+		for row in rows:
+			quizzes.append(row[0])
+		return quizzes
+
+
 	def get_quiz(self, id):
 		results = self.cursor.execute("SELECT * FROM quiz WHERE id = {}".format(id))
 		rows = results.fetchall()
