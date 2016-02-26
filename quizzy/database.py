@@ -41,14 +41,17 @@ class QuizToDb(object):
 					);
 				''')
 		except sqlite3.OperationalError as e:
-			print(e)
+			print("Error Creating Database")
 
 	def save_question(self, question, quiz_id):
 		question_text = question.get_question()
 		options_list = question.get_options()
 		options = ''
-		for i in range(len(options_list)-2):
-			options += options_list[i]+'|'
+		for i in range(len(options_list)):
+			if i < len(options_list)-1:
+				options += options_list[i]+'|'
+			else:
+				options += options_list[i]
 		answer = question.get_answer_index()
 		self.cursor.execute("INSERT INTO questions(question, options, answer, quiz_id) VALUES(?, ?, ?, ?)", (question_text, options, answer, quiz_id))
 
@@ -66,10 +69,13 @@ class QuizToDb(object):
 		if quiz.in_quiz('difficulty'):
 			difficulty = quiz.get_difficulty()
 		try:
-			if not key or key == '':
-				return "Keys specifeid but given no Value"
+			if quiz.in_quiz('key') and key == '':
+				return "Keys specified but given no Value"
 			else:
-				self.cursor.execute("INSERT INTO quiz(key, title, tags, category, duration, difficulty) VALUES(?, ?, ?, ?, ?, ?)", (key,  title, tags, category, duration, difficulty))
+				if key == '':
+					self.cursor.execute("INSERT INTO quiz(title, tags, category, duration, difficulty) VALUES(?, ?, ?, ?, ?)", (title, tags, category, duration, difficulty))
+				else:
+					self.cursor.execute("INSERT INTO quiz(key, title, tags, category, duration, difficulty) VALUES(?, ?, ?, ?, ?, ?)", (key,  title, tags, category, duration, difficulty))
 		except sqlite3.IntegrityError as e:
 			raise(e)
 			return "Quiz With the same name or key already Exist in the database"+"\n"
@@ -86,12 +92,18 @@ class QuizToDb(object):
 			quizzes.append(row[0])
 		return quizzes
 
-
 	def get_quiz(self, id):
 		results = self.cursor.execute("SELECT * FROM quiz WHERE id = {}".format(id))
 		rows = results.fetchall()
 		if len(rows) < 1:
 			return "No Quiz with the specified ID"
+		return self.get_quiz_dict(rows[0])
+
+	def get_quiz_title_dict(self, title):
+		results = self.cursor.execute("SELECT * FROM quiz WHERE title = '{}'".format(title))
+		rows = results.fetchall()
+		if len(rows) < 1:
+			return "No Quiz with the specified Title"
 		return self.get_quiz_dict(rows[0])
 
 	def get_all_quiz(self):
@@ -100,11 +112,9 @@ class QuizToDb(object):
 		return rows
 
 	def get_quiz_title(self, title):
-		results = self.cursor.execute("SELECT * FROM quiz WHERE title = '{}'".format(title))
-		rows = results.fetchall()
-		if len(rows) < 1:
-			return "No Quiz with the specified Title"
-		return self.get_quiz_dict(rows[0])
+		quiz_dict = self.get_quiz_title_dict(title)
+		return Quiz(quiz_dict)
+
 	def get_quiz_property(self, quiz_property, data):
 		results = self.cursor.execute("SELECT * FROM quiz WHERE {} = {}".format(quiz_property, data))
 		if len(rows) < 1:
@@ -139,4 +149,4 @@ class QuizToDb(object):
 			question['options'] = questions[i][2].split("|")
 			question['answer'] = questions[i][3]
 			quiz['questions'].update({num: question})
-		return Quiz(quiz)
+		return quiz

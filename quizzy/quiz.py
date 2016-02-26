@@ -83,5 +83,5 @@ class Quiz(object):
 				wrong_questions.append(key)
 		percentage = 100*float(score)/float(self.number_of_questions)
 		return {"score": score, "percentage": percentage, "wrong": wrong_questions}
-
+		
 	# def is_pass(self):

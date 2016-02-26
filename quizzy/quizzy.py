@@ -4,6 +4,7 @@ from question import Question
 from database import QuizToDb
 import json
 import onlinequiz
+import time
 
 
 def list_online_quizzes():
@@ -84,7 +85,7 @@ def display(quiz):
 	click.echo(click.style(title, fg="red", bg="white"))
 	click.echo(click.style("%d Questions" % number_of_questions, fg="cyan"))
 	click.echo(click.style("You have %s minuutes for this quiz" % duration, fg="cyan"))
-	quiz_time = time.time()+(duration*60)
+	quiz_time = time.time()+float(duration*60)
 	questions = quiz.get_all_questions()
 	answer_dict = {}
 	for i in range(len(questions)):
@@ -122,13 +123,13 @@ def show_menu():
 	menu += click.style("importquiz", bg='green') + click.style("<path_to_quiz> \t to import a quiz into library from Json\n", fg="green")
 	menu += click.style("takequiz", bg='green') + click.style("<quiz_name> \t to take a quiz\n", fg="green")
 	menu += click.style("onlinequizzes", bg='green') + click.style("\t to list quiz online\n", fg="green")
-	menu += click.style("takeonline", bg='green') + click.style("\t to take quiz online\n", fg="green")
+	menu += click.style("takeonline", bg='green') + click.style("\t <quiz_name> to take quiz online\n", fg="green")
+	menu += click.style("uploadquiz", bg='green') + click.style("<quiz_name> \t to upload a local quiz online \n", fg="green")
 	menu += click.style("help", bg='green') + click.style("\tto get help\n", fg="green")
 	menu += click.style("exit", bg='green') + click.style("\t to exit application\n", fg="green")
 	return click.prompt(menu)
 	#include option to save session, review  wrong question
 
-#click.echo(click.style("Hello", fg="green"))
 
 @click.command()
 def menu():
@@ -166,6 +167,15 @@ def menu():
 				take_online_quiz(title)
 			except IndexError:
 				click.echo(click.style("No title Given, Specify the title", bg="red"))
+		elif user_action[0] == "uploadquiz":
+			try:
+				onlinequiz.upload_quiz(user_action[0])
+			except IndexError:
+				click.echo(click.style("No title Given, Specify the title", bg="red"))
+		elif user_action[0] == "exit":
+			break
+		else:
+			click.echo(click.style("Invalid Command", bg="red"))
 
 
 if __name__ == '__main__':
