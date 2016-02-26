@@ -10,6 +10,7 @@ def list_online_quizzes():
 	quizzes = onlinequiz.get_quizzes()
 	for quiz in quizzes:
 		click.echo(click.style(quiz, fg="magenta"))
+
 def take_online_quiz(title):
 	quiz = onlinequiz.get_quiz(title)
 	if quiz:
@@ -83,11 +84,20 @@ def display(quiz):
 	click.echo(click.style(title, fg="red", bg="white"))
 	click.echo(click.style("%d Questions" % number_of_questions, fg="cyan"))
 	click.echo(click.style("You have %s minuutes for this quiz" % duration, fg="cyan"))
+	quiz_time = time.time()+(duration*60)
 	questions = quiz.get_all_questions()
 	answer_dict = {}
 	for i in range(len(questions)):
-		answer = present_question(questions[i])
-		answer_dict.update({i+1:str(answer)})
+		if time.time() < quiz_time:
+			answer = present_question(questions[i])
+			answer_dict.update({i+1:str(answer)})
+		else:
+			click.echo(click.style("Time Up!!", bg="red"))
+			answer = -1
+			answer_dict.update({i+1:str(answer)})
+	return submit(quiz, answer_dict) 
+
+def submit(quiz, answer_dict):
 	evaluation = quiz.evaluate(answer_dict)
 	return { "score": evaluation, "answers":answer_dict }
 
@@ -98,23 +108,24 @@ def take_quiz(quiz_title):
 	if type(quiz) == str:
 		click.echo(click.style(quiz, bg="red"))
 		return
-	set_time(1)
 	session = display(quiz)
 	score = session["score"]
 	answers = session["answers"]
 	session_info = {'wrong':session['score']['wrong'], 'answers':answers}
 	click.echo(click.style("You scored {}%".format(score["percentage"]), fg="cyan"))
 	is_review = click.prompt(click.style("Enter r to review your test session, any other to continue".format(score["percentage"]), fg="cyan"))
-	if is_review:
+	if is_review == "r":
 		review_test_session(quiz, session_info)
 
 def show_menu():
-	menu = "listquizzes \t List all quiz avaliable in libary\n"
-	menu += "importquiz <path_to_quiz> \t to import a quiz into library from Json\n"
-	menu += "takequiz <quiz_name> \t to take a quiz\n"
-	menu += "help \tto get help\n"
-	menu += "exit \t to exit application\n"
-	return click.prompt(click.style(menu, fg="green"))
+	menu = click.style("listquizzes", bg='green') + click.style("\t List all quiz avaliable in libary\n", fg="green")
+	menu += click.style("importquiz", bg='green') + click.style("<path_to_quiz> \t to import a quiz into library from Json\n", fg="green")
+	menu += click.style("takequiz", bg='green') + click.style("<quiz_name> \t to take a quiz\n", fg="green")
+	menu += click.style("onlinequizzes", bg='green') + click.style("\t to list quiz online\n", fg="green")
+	menu += click.style("takeonline", bg='green') + click.style("\t to take quiz online\n", fg="green")
+	menu += click.style("help", bg='green') + click.style("\tto get help\n", fg="green")
+	menu += click.style("exit", bg='green') + click.style("\t to exit application\n", fg="green")
+	return click.prompt(menu)
 	#include option to save session, review  wrong question
 
 #click.echo(click.style("Hello", fg="green"))
@@ -139,16 +150,22 @@ def menu():
 			except IndexError:
 				click.echo(click.style("No title Given, Specify the title", bg="red"))
 		elif user_action[0] == 'importquiz':
-			import_quiz(user_action[1])
+			try:
+				import_quiz(user_action[1])
+			except IndexError:
+				click.echo(click.style("Path to file not specified", bg="red"))
 		elif user_action[0] == 'onlinequizzes':
-			list_online_quizzes()
+			try:
+				list_online_quizzes()
+			except:
+				click.echo(click.style("An Error Occurred", bg="red"))
 		elif user_action[0] == 'takeonline':
 			try:
 				quiz_title = user_action[1:]
 				title = " ".join(quiz_title)
 				take_online_quiz(title)
 			except IndexError:
-				click.echo(click.style("No title Given, Specify the title", fg="green"))
+				click.echo(click.style("No title Given, Specify the title", bg="red"))
 
 
 if __name__ == '__main__':
